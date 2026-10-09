@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <stdbool.h>
+#include <conio.h>
 #include "frame.h"
 #include "ascii.h"
 #include "term.h"
 #include "camera.h"
 
-static const bool AUTO_CONTRAST = true;
+static bool auto_contrast = true;
 
 static volatile bool keep_running = true;
 
@@ -51,18 +52,29 @@ int main (void) {
     // clr the screen
     printf("\x1b[2J");
     while (keep_running) {
-        /*
-        int center_x = i * 10 % first_frame.width;
-        int center_y = first_frame.height / 2;
+        int key_waiting = _kbhit();
 
-        // debug function to fill in a gradient to test brightness ramping  
-        frame_fill_circle(&first_frame, center_x, center_y);
-        */
+        // react to key presses without the programing freezing
+        if (key_waiting) {
+            int key = _getch();
+            switch (key) {
+                case 'q':
+                case 'Q':
+                    keep_running = false;
+                    break;
+
+                case 'c':
+                case 'C':
+                    auto_contrast = !auto_contrast;
+                    break;
+            }
+        }
+
         if (!camera_read_frame(&first_frame)) {
             break;
         }
 
-        if (AUTO_CONTRAST) frame_auto_contrast(&first_frame);
+        if (auto_contrast) frame_auto_contrast(&first_frame);
 
         // getting the exact size of the terminal
         int cols, rows;
@@ -81,6 +93,7 @@ int main (void) {
         ascii_print(&first_frame, fit_cols, fit_rows);
 
         //Sleep(33); // ReadSample alr waits for the cameras next picture
+        printf("q: quit | c: toggle auto contrast [%s]\x1b[K", (auto_contrast) ? "ENABLED" : "DISABLED");
     }
 
     // cleanup
@@ -88,6 +101,7 @@ int main (void) {
     frame_destroy(&first_frame);
     printf("\x1b[?25h"); // show the cursor again
     restore_terminal();
+    printf("\n");
 
     return EXIT_SUCCESS;
 }
