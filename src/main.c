@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <stdbool.h>
 #include "frame.h"
 #include "ascii.h"
 #include "term.h"
 #include "camera.h"
+
+static const bool AUTO_CONTRAST = true;
 
 static volatile bool keep_running = true;
 
@@ -58,6 +61,8 @@ int main (void) {
         if (!camera_read_frame(&first_frame)) {
             break;
         }
+
+        if (AUTO_CONTRAST) frame_auto_contrast(&first_frame);
 
         // getting the exact size of the terminal
         int cols, rows;

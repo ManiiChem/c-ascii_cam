@@ -53,3 +53,37 @@ void frame_fill_circle (Frame *f, int center_x, int center_y) {
         }
     }
 }
+
+void frame_auto_contrast (Frame *f) {
+    int low = 255;
+    int high = 0;
+
+    for (int y = 0; y < f->height; y++) {
+        for (int x = 0; x < f->width; x++) {
+            int index = y * f->stride + x;
+
+            if (f->pixels[index] < low) {
+                low = f->pixels[index];
+            } 
+
+            if (f->pixels[index] > high) {
+                high = f->pixels[index];
+            }
+        }
+    }
+
+    if (low == high) {
+        return;
+    }
+
+    for (int y = 0; y < f->height; y++) {
+        for (int x = 0; x < f->width; x++) {
+            int index = y * f->stride + x;
+
+            // newquantity= oldquantity * newservings / oldservings
+            int brightness = (f->pixels[index] - low) * 255 / (high - low);
+
+            f->pixels[index] = (uint8_t) brightness;
+        }
+    }
+}
