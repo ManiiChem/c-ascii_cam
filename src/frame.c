@@ -55,24 +55,28 @@ void frame_fill_circle (Frame *f, int center_x, int center_y) {
 }
 
 void frame_auto_contrast (Frame *f) {
-    int low = 255;
-    int high = 0;
+    int histogram[256] = {0};
+    int low = 0;
+    int high = 255;
 
     for (int y = 0; y < f->height; y++) {
         for (int x = 0; x < f->width; x++) {
             int index = y * f->stride + x;
 
-            if (f->pixels[index] < low) {
-                low = f->pixels[index];
-            } 
-
-            if (f->pixels[index] > high) {
-                high = f->pixels[index];
-            }
+            histogram[f->pixels[index]]++; // add each pixels brightness +1 to the histogram to find the 1% and disregard the extreme outliers
         }
     }
 
-    if (low == high) {
+    // how many pixels 1% is
+    int cutoff = f->width * f->height / 100;
+    int seen = 0;
+
+    while (low < 255 && seen + histogram[low] <= cutoff) seen += histogram[low++];
+    
+    seen = 0;
+    while (high > 0 && seen + histogram[high] <= cutoff) seen += histogram[high--];
+
+    if (low >= high) {
         return;
     }
 
@@ -80,8 +84,18 @@ void frame_auto_contrast (Frame *f) {
         for (int x = 0; x < f->width; x++) {
             int index = y * f->stride + x;
 
-            // newquantity= oldquantity * newservings / oldservings
-            int brightness = (f->pixels[index] - low) * 255 / (high - low);
+            int brightness;
+
+            // clamping
+            if (f->pixels[index] <= low) {
+                brightness = 0;
+            } else if (f->pixels[index] >= high) {
+                brightness = 255;
+            } else {
+                // newquantity= oldquantity * newservings / oldservings
+                brightness = (f->pixels[index] - low) * 255 / (high - low);
+
+            }
 
             f->pixels[index] = (uint8_t) brightness;
         }
