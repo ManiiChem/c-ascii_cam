@@ -1,6 +1,8 @@
 # C-Ascii_cam
 
-Turn your terminal into a live ASCII art using your webcam. Written in C for windows with no third-party libraries.
+Turn your terminal into a live ASCII art using your webcam. Written in C for Windows with no third-party libraries.
+
+**Full write-up:** [Turning my Windows terminal into live ASCII art using my webcam](https://manichem.ca/posts/webcam-ascii-art-in-c): how it was built step by step.
 
 ![demo](media/demo.gif)
 
